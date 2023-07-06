@@ -1,34 +1,106 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+# GPT-SERVICE-STREAM
+
+This project manages the messages between an odoo client and the Openai api, so that the response is sent to the client using data streaming.
+
+Additionally it also stores messages from both the user and the Ai model, manages queries from the model to generate actions and response with context. 
+
+## API Reference
+
+#### Post Live Chat
+
+```http
+  POST /api/chat
+```
+
+| Parameter (body) | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `prompt` | `string` | **Required**. Your prompt user |
+| `chat_id` | `int` |  Your chat ID from the database |
+
+#### Post Recommendations
+
+```http
+  POST /api/recommendations
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `user`      | `string` | **Required**. The user's last message |
+| `assistant`      | `string` | **Required**. The last message from the assistant |
+
+
+## Demo
+
+Insert gif or link to demo
+
+
+## Use of PNPM
+
+In this case, we are using [PNPM](https://pnpm.io/) as dependency manager.  
 
 ## Getting Started
 
-First, run the development server:
+First add an .env file with the following data:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+OPENAI_API_KEY = sk-************************
+URL_OPENAI_COMPLETIONS = https://api.openai.com/v1/completions
+URL_ODOO = ********
+PORT_ODOO = ****
+DB_ODOO = ********
+USER_ODOO = ********
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the development server:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+pnpm run dev
+# or
+npm run dev
+```
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Before you start, make sure you have it installed:
 
-## Learn More
+- Node.js (version 18.16.1)
+- npm (version 9.5.0) & pnpm (version 8.6.5)
 
-To learn more about Next.js, take a look at the following resources:
+### Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Install the dependencies:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+  pnpm install
+```
 
-## Deploy on Vercel
+2. Build the application:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+  pnpm run build
+  # or
+  npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+3. Run the application in production mode:
+
+```bash
+  pnpm run start
+  # or
+  npm run start
+```
+4. The application will be available at the URL provided by the terminal.
+## Authors
+
+- [@example](https://www.github.com/)
+
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+
+## Support
+
+For support, email fake@fake.com or join our Slack channel.
+
