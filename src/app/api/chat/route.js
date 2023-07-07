@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { OpenAIStream } from '@/utils/openAiStream';
-// import { get_messages } from '@/utils/odoo_connection';
 import call_functions from '@/utils/call_functions';
 import { odooConnection } from '@/utils/odoo_connection';
 

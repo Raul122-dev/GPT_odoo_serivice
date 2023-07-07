@@ -1,7 +1,5 @@
 import { createParser } from "eventsource-parser";
 import { Configuration, OpenAIApi } from "openai"
-// import { save_message, consult_odoo_database,
-// search_in_google, count_odoo_records, create_odoo_record } from "./odoo_connection";
 import { odooConnection } from "./odoo_connection";
 
 if (!process.env.OPENAI_API_KEY) {
