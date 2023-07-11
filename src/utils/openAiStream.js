@@ -1,16 +1,9 @@
 import { createParser } from "eventsource-parser";
-import { Configuration, OpenAIApi } from "openai"
 import { odooConnection } from "./odoo_connection";
 
 if (!process.env.OPENAI_API_KEY) {
     throw new Error("Missing env var from OpenAI");
 }
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
 
 const executeFunction = async (functionName, functionArgs) => {
   console.log("llega aqui")
@@ -23,7 +16,7 @@ const executeFunction = async (functionName, functionArgs) => {
     const response_context = await odooConnection.search_in_google({ function_args: functionArgs });
     return response_context;
   }
-  if (functionName === "count_odoo_records") {
+  if (functionName === "count_odoo_records") { 
     const response_context = await odooConnection.count_odoo_records({ function_args: functionArgs });
     return response_context;
   }
@@ -87,59 +80,66 @@ const OpenAIStream = async ({payload, prompt, chat_id }) => {
               }
 
               const res = await openai.createChatCompletion(secondPayload, { responseType: 'stream' });
-
-              res.data.on('data', async (data) => {
-                const lines = data.toString().split('\n').filter(line => line.trim() !== '');
-                for (const line of lines) {
-                    const message = line.replace(/^data: /, '');
-                    if (message === '[DONE]') {
-                        controller.enqueue(encoder.encode('\n'));
-
-                        // setTimeout(() => {
-                        controller.enqueue(encoder.encode(' '));
-                        // }, 500);
-
-                        const action_response = {
-                          text: 'DONE',
-                          args: functionArgs,
-                          status: 'success',
-                          action_function: functionResult,
-                        }
-
-                        const queue = encoder.encode(JSON.stringify(action_response));
-                        controller.enqueue(queue);
-
-                        // return; // Stream finished
-                        controller.close();
-                        console.log('--------------text_response-------------')
-                        console.log(text_response);
-
-                        await odooConnection.save_message({
-                          is_user: true,
-                          chat_id: chat_id,
-                          message: prompt,
-                        })
-                        await odooConnection.save_message({
-                          is_user: false,
-                          chat_id: chat_id,
-                          message: text_response,
-                          data: functionResult,
-                        })
-
-                        return; // Stream
-                    }
-                    try {
-                        const parsed = JSON.parse(message);
-                        const text = parsed.choices[0].delta?.content || '';
-                        text_response += text;
-                        const queue = encoder.encode(text);
-                        controller.enqueue(queue);
-                    } catch(error) {
-                        console.error('Could not JSON parse stream message', message, error);
-                        controller.close();
-                    }
-                }
+              
+              const secondRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
+                },
+                method: "POST",
+                body: JSON.stringify(secondPayload),
               });
+
+              const secondOnParse = async (event) => {
+                if (event.type === "event") {
+                  const data = event.data;
+                  if (data === "[DONE]") {
+                      controller.enqueue(encoder.encode('\n'));
+                      controller.enqueue(encoder.encode(' '));
+
+                      const action_response = {
+                        text: 'DONE',
+                        args: functionArgs,
+                        status: 'success',
+                        action_function: functionResult,
+                      }
+
+                      const queue = encoder.encode(JSON.stringify(action_response));
+                      controller.enqueue(queue);
+                      controller.close();
+                      await odooConnection.save_message({
+                        is_user: true,
+                        chat_id: chat_id,
+                        message: prompt,
+                      })
+                      await odooConnection.save_message({
+                        is_user: false,
+                        chat_id: chat_id,
+                        message: text_response,
+                        data: functionResult,
+                      })
+                      return; // Stream
+                  }
+                  else {
+                    try {
+                      const json = JSON.parse(data);
+                      const text = json.choices[0]?.delta?.content || "";
+                      text_response += text;
+                      const queue = encoder.encode(text);
+                      controller.enqueue(queue);
+                    } catch (error) {
+                      console.error('Could not JSON parse stream message', data, error);
+                      controller.close();
+                    }
+                  }
+                }
+              }
+
+              const secondParser = createParser(secondOnParse);
+              for await (const chunk of secondRes.body) {
+                  secondParser.feed(decoder.decode(chunk));
+              }
+
             }
             else {
               controller.close();
