@@ -2,13 +2,7 @@ import { NextResponse } from 'next/server'
 import { OpenAIStream } from '@/utils/openAiStream';
 import call_functions from '@/utils/call_functions';
 import { odooConnection } from '@/utils/odoo_connection';
-
-
-export const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
+import { corsHeaders } from '@/utils/cors_config';
 
 export async function OPTIONS(req, res, next) {
     return NextResponse.json({}, { headers: corsHeaders });
@@ -19,6 +13,10 @@ export async function POST(req, res, next) {
 
     if (!prompt) {
         return new Response("No prompt in the request", { status: 400 });
+    }
+
+    if (!chat_id) {
+        return new Response("No chat_id in the request", { status: 400 });
     }
 
     const messages = await odooConnection.get_messages({ chat_id: chat_id , prompt: prompt })
@@ -36,7 +34,14 @@ export async function POST(req, res, next) {
     };
 
     const stream = await OpenAIStream({payload: payload, prompt: prompt, chat_id: chat_id});
-    return new Response(stream);
+    return new Response(stream, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+    });
 }
 
 

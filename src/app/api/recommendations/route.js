@@ -1,23 +1,12 @@
 import cors from 'cors'
 import { NextResponse } from "next/server" 
-
-let corsHandler = cors({
-    methods: ['POST', 'OPTIONS'],
-    origin: 'http://localhost:8079', // or your origin. For example, http://localhost:3000
-    optionsSuccessStatus: 200, 
-})
+import { corsHeaders } from '@/utils/cors_config';
 
 export const runtime = 'edge'
 
 const API_KEY = process.env.OPENAI_API_KEY
 const URL = process.env.URL_OPENAI_COMPLETIONS
 const REGEX = /^[\d.]+\.\s/;
-
-export const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
 
 export async function OPTIONS(req, res, next) {
     return NextResponse.json({}, { headers: corsHeaders });
