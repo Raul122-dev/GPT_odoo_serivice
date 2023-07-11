@@ -19,7 +19,7 @@ export async function POST(req, res, next) {
         return new Response("No chat_id in the request", { status: 400 });
     }
 
-    const messages = await odooConnection.get_messages({ chat_id: chat_id , prompt: prompt })
+    const messages = await odooConnection.get_messages({ chat_id: 2 , prompt: prompt })
 
     const payload = {
         model: "gpt-3.5-turbo-0613",
@@ -33,7 +33,7 @@ export async function POST(req, res, next) {
         function_call: 'auto',
     };
 
-    const stream = await OpenAIStream({payload: payload, prompt: prompt, chat_id: chat_id});
+    const stream = await OpenAIStream({payload: payload, prompt: prompt, chat_id: 2});
     return new Response(stream, {
         status: 200,
         headers: {
